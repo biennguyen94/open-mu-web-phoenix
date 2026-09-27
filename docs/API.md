@@ -131,3 +131,38 @@ Next.js edge cases observed in Phase 2 (parity DB): `playersList` with non-strin
 ## Porting note (decision D3)
 
 All `/api/*` JSON endpoints are **kept** in Phoenix during the port (same URLs, payload shapes, messages and status codes) for compatibility and parity testing. Exceptions by decision D1: authorization fixes (R1–R3) change who is allowed, not the response format. LiveViews call the same context functions as the API controllers. `/api/auth/[...nextauth]` is NextAuth-specific; its Phoenix equivalent is the session login/logout (contract to define in Phase 3).
+
+## Compatibility review (Phase 6, 2026-09-27)
+
+### Coverage
+
+All 14 route handlers of `app/api/**/route.ts` (15 method/path pairs without NextAuth) are implemented in Phoenix with the same URL, method, request shape, response bodies, status codes and `Content-Type: application/json`. `GET /api/auth/session` is also provided. Verified by `phoenix/scripts/parity/run_all.sh` (api 13/13, http 89/89, auth, char, admin: 0 failures).
+
+### HTTP surface (reproduced)
+
+| Behavior | Next.js | Phoenix |
+|---|---|---|
+| Other method on an existing API path | 405, empty body | same (`Api.FallbackController`, methods derived from the router) |
+| `OPTIONS` on an API path | 204, `allow:` e.g. `GET, HEAD, OPTIONS` / `OPTIONS, POST` | same |
+| `HEAD` on a GET endpoint | 200, headers only | same (`Plug.Head`) |
+| `/path/` (any page or API) | 308 → `/path` (query kept, target in body) | same (`Plugs.TrailingSlashRedirect`) |
+| Body parsing | `req.json()`: any Content-Type, empty/invalid → route error | same (`Plugs.LenientParsers`) |
+| Unknown `/api/...` path | 404 (Next.js 404 page) | 404 (Phoenix error page) |
+
+### Intentional differences (final list)
+
+| Area | Difference | Reason |
+|---|---|---|
+| `PUT /api/account/changepassword` | always changes the logged-in account; body `name` ignored | R1 |
+| `POST /api/characters/addstats` | amounts must be integers >= 0 (negative / fractional → 400 "There was a problem try again later") | R2 |
+| character endpoints, admin news endpoints | only the logged-in account's characters / GM characters count (others → the route's "You can't do this!" status) | R3 |
+| `POST /api/characters/reset` | location from the DB class, `clasId` ignored | R4 |
+| character endpoints | checks inside a locked transaction — no double spending | R5 |
+| `POST /api/characters/ranking/online` | missing / non-list `playersList` → 400 (Next.js returned every character) | R10 |
+| `POST /api/admin/news` | author = first GM character (by slot) of the logged-in account | consequence of R3 (B11) |
+| `/api/auth/*` | only `session` is provided; NextAuth protocol endpoints (`csrf`, `providers`, `signin`, `signout`, `callback/credentials`, `error`) → 404; login/logout are `POST /login` / `DELETE /logout` with the site session cookie `_open_mu_web_key` | library-specific protocol (Phase 3) |
+| `GET /api/auth/session` | `role` read from the DB on each request; `expires` = now + 30 days | Phase 3 |
+| Unhandled server errors | Phoenix error JSON / page instead of the Next.js 500 page (e.g. database down on `/api/guilds`) | framework |
+| Headers | Next.js-specific `vary: rsc, next-router-…` not sent | framework |
+
+No external API consumer is known (ASSUMPTION); clients holding a NextAuth cookie must log in again.

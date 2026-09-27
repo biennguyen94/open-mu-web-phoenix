@@ -25,6 +25,8 @@ defmodule OpenMuWebWeb.Router do
   # responses are JSON whatever the Accept header is.
   pipeline :api do
     plug :put_format, "json"
+    # Same Content-Type as the Next.js route handlers (no charset parameter).
+    plug :put_json_content_type
     # Session cookie (SameSite=Lax) identifies the account, like the NextAuth cookie did.
     plug :fetch_session
     plug :fetch_current_account
@@ -103,6 +105,9 @@ defmodule OpenMuWebWeb.Router do
 
     post "/admin/news", AdminNewsController, :create
     delete "/admin/news/:id", AdminNewsController, :delete
+
+    # 405 / OPTIONS / 404 like the Next.js App Router — must stay the last /api route.
+    match :*, "/*path", FallbackController, :call
   end
 
   if Application.compile_env(:open_mu_web, :dev_routes) do
@@ -119,4 +124,8 @@ defmodule OpenMuWebWeb.Router do
       live_dashboard "/dashboard", metrics: OpenMuWebWeb.Telemetry
     end
   end
+
+  @doc false
+  def put_json_content_type(conn, _opts),
+    do: Plug.Conn.put_resp_header(conn, "content-type", "application/json")
 end

@@ -75,9 +75,12 @@ open-mu-web/                 (this repo)
 - [x] `/api/admin/news` (POST) and `/api/admin/news/:id` (DELETE) with the Next.js messages/status codes; R3 fixed.
 - [x] Tests + side-by-side parity (`admin_parity.py`).
 
-## Phase 6 — API compatibility review
+## Phase 6 — API compatibility review — DONE (2026-09-27)
 
-- D3: all `/api/*` endpoints are kept; this phase audits completeness and parity (URLs, payloads, status codes) and documents intentional differences (D1 fixes).
+- [x] Inventory: every `app/api/**/route.ts` handler exists in Phoenix (plus `/api/auth/session`).
+- [x] HTTP surface reproduced: 405 / OPTIONS (204 + `allow`) / HEAD / trailing-slash 308 / `Content-Type` without charset.
+- [x] Final list of intentional differences in `API.md`.
+- [x] `phoenix/scripts/parity/run_all.sh` runs every parity check in one command (+ `http_parity.py`).
 
 ## Phase 7 — Parity & cutover
 

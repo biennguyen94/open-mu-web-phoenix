@@ -10,10 +10,10 @@ Last updated: 2026-09-27
 | 3 | Authentication | **DONE** (2026-09-27) |
 | 4 | Character operations | **DONE** (2026-09-27) |
 | 5 | Admin | **DONE** (2026-09-27) |
-| 6 | API compatibility review | TODO |
+| 6 | API compatibility review | **DONE** (2026-09-27) |
 | 7 | Parity & cutover | TODO |
 
-Phoenix app in `phoenix/`: skeleton (Phase 1), read-only features (Phase 2), authentication (Phase 3), character operations (Phase 4), admin news (Phase 5). The Next.js application code has not been modified. The DB `openmu` has not been written by Phoenix (no migrations run against it; verified `public.openmu_web_schema_migrations` does not exist there).
+Phoenix app in `phoenix/`: skeleton (Phase 1), read-only features (Phase 2), authentication (Phase 3), character operations (Phase 4), admin news (Phase 5), API compatibility review (Phase 6). The Next.js application code has not been modified. The DB `openmu` has not been written by Phoenix (no migrations run against it; verified `public.openmu_web_schema_migrations` does not exist there).
 
 ## Decisions
 
@@ -230,7 +230,27 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 
 - The dialog / DELETE flow in a real browser (covered by controller tests and HTML checks; no headless browser).
 
-## Blockers before Phase 6
+## Phase 6 results (2026-09-27)
+
+### Delivered
+
+- Inventory of `app/api/**/route.ts` vs the Phoenix router: complete (14 handlers + `/api/auth/session`).
+- `Api.FallbackController` (last `/api` route): 405 with empty body for other methods, `OPTIONS` → 204 + `allow`, unknown paths → 404 — allowed methods computed from the router.
+- `Plugs.TrailingSlashRedirect` (endpoint): `/path/` → 308 `/path` like Next.js, for pages and API.
+- `:api` pipeline answers `Content-Type: application/json` (no charset), like Next.js.
+- `phoenix/scripts/parity/http_parity.py` and `run_all.sh` (all stages, DB copies, servers, cleanup).
+- `API.md`: compatibility review, HTTP surface table, final list of intentional differences.
+
+### Test / parity results
+
+- `mix precommit`: **141 tests, 0 failures**.
+- `run_all.sh` (twice): api 13/13, http **89/89**, pages, auth, char, admin — **all PASS**, no process left running.
+
+### Open questions
+
+- R11 (minimum length of a new password) — still pending.
+
+## Blockers before Phase 7
 
 - None.
 
@@ -243,3 +263,4 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 - 2026-09-27 — Phase 3 done: authentication (login/logout, session, guards, register, change password, `/api/account/*`, `/api/auth/session`), 95 tests, auth parity 0 failures.
 - 2026-09-27 — Phase 4 done: character panel + operations (API + LiveView) with R2–R5 fixes, 122 tests, char parity 0 failures, live race test.
 - 2026-09-27 — Phase 5 done: admin news (page, delete dialog, API) with R3/R6 fixes, 136 tests, admin parity 0 failures.
+- 2026-09-27 — Phase 6 done: API surface audited and aligned (405/OPTIONS/308/content-type), `run_all.sh` parity runner, 141 tests.

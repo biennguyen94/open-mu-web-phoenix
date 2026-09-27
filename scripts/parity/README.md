@@ -1,5 +1,11 @@
 # Parity checks (Next.js vs Phoenix)
 
+**One command:** `./run_all.sh` — creates the disposable DB copies, starts the fake game
+server, Next.js (:4100) and Phoenix (:4101) for each stage, runs every check below and
+stops everything (logs in a temp dir). Exit code 0 when all checks pass.
+
+Manual runs:
+
 Run both apps against the same **disposable** DB copy and the same (fake) game server, then compare.
 
 ```bash
@@ -19,6 +25,7 @@ docker exec -i database psql -U postgres -d openmu_parity -v ON_ERROR_STOP=1 < f
 # 4. Compare
 ./api_parity.py
 ./auth_parity.py        # register / login / session / change password (creates accounts)
+./http_parity.py        # 405 / OPTIONS / HEAD / trailing slash / headers of the API surface
 ```
 
 Character operations write data, so each app gets its **own** fresh copy instead:
