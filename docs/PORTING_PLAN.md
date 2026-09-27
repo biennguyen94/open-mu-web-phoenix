@@ -89,4 +89,4 @@ open-mu-web/                 (this repo)
 - [x] Deployed on Docker (WSL) on the OpenMU network, port 4000; production smoke tests (read-only).
 - [ ] Rotate DB credentials / untrack `.env` (R7) — needs a change in the OpenMU stack; not done.
 - [ ] Announce re-login to users (sessions do not carry over).
-- Follow-ups outside porting scope: B3 (per-class base stats), B4, B5, B14, B15, R9 (default test accounts), R11 (password length).
+- Follow-ups outside porting scope: B3 (per-class base stats), B4, B5, B14, B15, R11 (password length). R9 (default test accounts) accepted — D7.

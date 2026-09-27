@@ -25,6 +25,7 @@ Phoenix app in `phoenix/`: skeleton (Phase 1), read-only features (Phase 2), aut
 | D4 | CSS | **Tailwind CSS v3** for maximum UI parity. |
 | D5 | Database | Allowed to use the `database` container for verification/tests. Phase 0: `openmu` read-only; writes only in disposable copies. |
 | D6 | Phoenix location | **`phoenix/` subdirectory of this repo**, Mix app `:open_mu_web`, modules `OpenMuWeb` / `OpenMuWebWeb`. Rationale: Next.js stays untouched at the root as the parity reference, both apps share `docs/` and `CLAUDE.md`, side-by-side testing against the same DB copy is simple, and later agents have one context. Cutover (Phase 7) can move Phoenix to the root or remove Next.js. |
+| D7 | R9 — OpenMU default test accounts (password = login name, incl. GMs) | **Accepted**: they are test data with default passwords; the site/game may be published with them (owner, 2026-09-27). |
 
 Deliberate behavior differences already accepted: D1 security fixes (incl. R10: `POST /api/characters/ranking/online` without `playersList` → 400 instead of every character); B2 (Phoenix implements working news pagination and news detail — current Next 16 app is broken there); rendering-only differences listed in Phase 2 results.
 
@@ -274,7 +275,7 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 ### Not done (need a decision / outside the repository)
 
 - R7: repository `.env` still tracked in git with the DB password; Postgres password not rotated (requires changing the OpenMU stack configuration). `NEXTAUTH_SECRET` is no longer used by the site.
-- R9: OpenMU default test accounts (password = login name, incl. GMs) still exist.
+- R9: OpenMU default test accounts still exist — **accepted** (D7: test data, publishing is fine).
 - R11: minimum length for new passwords — still open.
 - Manual checks: real browser on Windows; game client login with an account created / password changed on the new site; in-game effects of character operations.
 - Follow-ups outside porting scope (kept by D2): B3, B4, B5, B14, B15.
@@ -290,3 +291,4 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 - 2026-09-27 — Phase 5 done: admin news (page, delete dialog, API) with R3/R6 fixes, 136 tests, admin parity 0 failures.
 - 2026-09-27 — Phase 6 done: API surface audited and aligned (405/OPTIONS/308/content-type), `run_all.sh` parity runner, 141 tests.
 - 2026-09-27 — Phase 7 done: release image + compose on the OpenMU Docker network, deployed on WSL (port 4000), staging + production smoke tests; open items: R7 rotation, R9, R11, manual game-client/browser checks.
+- 2026-09-27 — D7 recorded: default test accounts (R9) accepted for publishing.

@@ -18,7 +18,7 @@ Handling in the port: see `PORTING_STATUS.md` → Decisions.
 | R10 | Medium | `POST /api/characters/ranking/online` without `playersList` returns **every character with map and position** (Prisma ignores `in: undefined`), including offline players. | **VERIFIED** (Phase 2: 76 characters returned) | Fixed in Phoenix (D1 principle): missing / non-list / non-string list → 400 `There was a problem try again later` |
 | R11 | Low | Change password has no server-side rule for the new password (the Next.js form only had `minlength=8`; the API accepts e.g. 1 character). | VERIFIED (source) | Kept for parity in Phase 3 — **open question** (see PORTING_STATUS) |
 | R12 | Low | Sessions are stateless cookies (NextAuth JWT before, signed+encrypted Phoenix cookie now): logout / password change do not revoke copies of an old cookie until it expires (30 days). | Design | Kept (same as before); a server-side token table would need a new website table |
-| R9 | High (deployment) | The DB contains OpenMU **default test accounts with password = login name**, including GM accounts `testgm` / `testgm2`. | VERIFIED on dev DB | Must be removed/changed on any public deployment (outside website scope) |
+| R9 | High (deployment) | The DB contains OpenMU **default test accounts with password = login name**, including GM accounts `testgm` / `testgm2`. | VERIFIED on dev DB | **Accepted (2026-09-27, owner decision D7)**: the accounts are test data with default passwords; publishing with them is fine |
 
 ## B. Functional bugs / oddities
 

@@ -74,7 +74,7 @@ The database is shared and unchanged by the switch (both apps read/write the sam
 ## Security notes at cutover
 
 - **R7**: the Phoenix site does not use `NEXTAUTH_SECRET` (it has its own `SECRET_KEY_BASE`, never committed). The repository root `.env` is still **tracked in git** and contains the database password; remove it from the index (`git rm --cached .env`, add it to `.gitignore`) and rotate the Postgres password — which also requires updating the OpenMU compose configuration (outside this repository; not done).
-- **R9**: the OpenMU default test accounts (password = login name, including GM accounts `testgm` / `testgm2`) exist in the database; remove or change them before exposing the site/game publicly (OpenMU admin panel; not done).
+- **R9** (accepted, decision D7): the OpenMU default test accounts (password = login name, including GM accounts `testgm` / `testgm2`) are test data; publishing with them is accepted by the owner.
 - Admin panel (`nginx-80`, port 80) is exposed on the host by the OpenMU stack, independent of the website.
 
 ## Verification at deployment (2026-09-27)
