@@ -91,7 +91,7 @@ docker compose up -d --build
 ```
 
 The site is served on port 4000. Operations, smoke tests, HTTPS / VPS notes and rollback:
-[docs/DEPLOY.md](docs/DEPLOY.md).
+[docs/DEPLOY.md](docs/DEPLOY.md); deploying to a VPS: [docs/VPS.md](docs/VPS.md).
 
 ## Parity with the Next.js app
 

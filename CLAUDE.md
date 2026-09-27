@@ -30,6 +30,7 @@ Decisions (details in `docs/PORTING_STATUS.md`): security issues fixed (no vulne
 - `docs/RISKS.md` — security issues, bugs, porting risks
 - `docs/PORTING_PLAN.md`, `docs/PORTING_STATUS.md` — phases, decisions, results, open questions (update as work progresses)
 - `docs/DEPLOY.md` — Docker deployment on WSL, operations, rollback
+- `docs/VPS.md` — deploying to a VPS (configuration, ports, HTTPS, security)
 
 ## Commands
 

@@ -22,4 +22,5 @@ How to read the paths:
 | [ROUTES.md](ROUTES.md), [API.md](API.md), [AUTH.md](AUTH.md), [FEATURES.md](FEATURES.md) | pages, API contracts (incl. intentional differences), authentication, features / character operations |
 | [RISKS.md](RISKS.md) | security issues (R*), bugs (B*), porting risks (P*) |
 | [DEPLOY.md](DEPLOY.md) | Docker deployment, operations, rollback |
+| [VPS.md](VPS.md) | what changes when deploying to a VPS (configuration, ports, HTTPS, security) |
 | [db/openmu_schema.sql](db/openmu_schema.sql) | schema-only dump of the OpenMU database (reference) |

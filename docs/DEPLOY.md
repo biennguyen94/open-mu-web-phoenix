@@ -69,6 +69,9 @@ The database is shared and unchanged by the switch (both apps read/write the sam
 
 ## HTTPS / VPS
 
+Full guide: [VPS.md](VPS.md).
+
+
 - On a VPS reached by IP or domain, set `PHX_HOST` (and `WEB_PORT` if needed). LiveView websockets accept the origin the page was served from (`check_origin: :conn`).
 - Behind an HTTPS reverse proxy: `PHX_URL_SCHEME=https`, `PHX_URL_PORT=443`, `PHX_FORCE_SSL=true` (the proxy must send `X-Forwarded-Proto`).
 
