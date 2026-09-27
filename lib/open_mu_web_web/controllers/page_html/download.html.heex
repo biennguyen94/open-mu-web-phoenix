@@ -1,0 +1,68 @@
+<Layouts.app flash={@flash} sidebar={@sidebar} current_account={@current_account}>
+  <%!-- Port of app/download/page.tsx. Empty download links hide their button. --%>
+  <div class="m-auto py-10 px-20 flex flex-col w-full">
+    <div>
+      <h2 class="text-2xl text-primary">Client Downloads</h2>
+      <hr class="border-t-2 border-slate-300" />
+      <p class="text-lg text-primary" phx-no-format>Downlaod the client for free</p>
+      <div class="flex gap-10 mt-10">
+        <a :if={@google_drive_link} href={@google_drive_link}>
+          <img src={~p"/images/download/google.png"} width="180" alt="google_drive" />
+        </a>
+        <a :if={@mediafire_link} href={@mediafire_link}>
+          <img src={~p"/images/download/mediafire.png"} width="180" alt="mediafire" />
+        </a>
+        <a :if={@mega_link} href={@mega_link}>
+          <img src={~p"/images/download/mega.png"} width="180" alt="mega" />
+        </a>
+      </div>
+    </div>
+    <div class="mt-8">
+      <h2 class="text-2xl text-primary">Utilities</h2>
+      <hr class="border-t-2 border-slate-300" />
+      <p class="text-lg text-primary" phx-no-format>Make sure you downlaod the latest drivers</p>
+      <div class="flex gap-10 mt-10">
+        <a href="https://dotnet.microsoft.com/en-us/download">
+          <img src={~p"/images/download/netframework.png"} width="180" alt="dotnet" />
+        </a>
+        <a href="https://dotnet.microsoft.com/en-us/download">
+          <img src={~p"/images/download/visual.png"} width="180" alt="dotnet" />
+        </a>
+      </div>
+    </div>
+    <div class="mt-8">
+      <h2 class="text-2xl text-primary">System Requirements</h2>
+      <hr class="border-t-2 border-slate-300" />
+      <p class="text-lg text-primary" phx-no-format>Check if your hardware is enough to give you a good gaming experience</p>
+      <table class="mt-8">
+        <thead>
+          <tr class="text-primary text-xl">
+            <th class="bg-secondary/[0.7] px-10 py-3">Component</th>
+            <th class="bg-secondary/[0.7] px-6 py-3">Minimum Requirements</th>
+            <th class="bg-secondary/[0.7] px-6 py-3">Recomendend Requirements</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            :for={
+              {component, minimum, recommended} <- [
+                {"Operating System", "Windows XP", "Windows 10"},
+                {"Processor", "Pentium 3 700Mhz", "Pentium 4 2.0Ghz"},
+                {"System Memory", "1GB", "4GB"},
+                {"Video Card", "128MB or higher", "128MB or higher"},
+                {"Direct X version", "DirectX 8.1a", "DirectX 9.0c"},
+                {"HardDisk Space", "1GB", "1GB"},
+                {"Framework Version", "Net Framework 7", "Net Framework 7"}
+              ]
+            }
+            class="text-center py-5 border-b-2"
+          >
+            <td class="py-3">{component}</td>
+            <td>{minimum}</td>
+            <td>{recommended}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</Layouts.app>

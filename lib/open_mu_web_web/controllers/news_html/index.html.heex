@@ -1,0 +1,11 @@
+<Layouts.app flash={@flash} sidebar={@sidebar} current_account={@current_account}>
+  <div class="px-20 w-full">
+    <h1 class="text-2xl text-primary font-semibold mb-4">NEWS</h1>
+    <hr class="h-[2px] bg-primary/[0.4] mb-6" />
+    <.news_card :for={article <- @news} article={article} short />
+    <div class="flex">
+      <.change_page_button :if={@page > 0} page={@page} forward={false} />
+      <.change_page_button :if={length(@news) > 3} page={@page} forward={true} />
+    </div>
+  </div>
+</Layouts.app>

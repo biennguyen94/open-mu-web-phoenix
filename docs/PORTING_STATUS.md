@@ -1,0 +1,182 @@
+# Porting status
+
+Last updated: 2026-09-27
+
+| Phase | Name | Status |
+|---|---|---|
+| 0 | Analysis / DB verification | **DONE** (2026-09-27) — items requiring a game client deferred (see below) |
+| 1 | Phoenix skeleton | **DONE** (2026-09-27) |
+| 2 | Read-only features | **DONE** (2026-09-27) |
+| 3 | Authentication | **DONE** (2026-09-27) |
+| 4 | Character operations | TODO |
+| 5 | Admin | TODO |
+| 6 | API compatibility review | TODO |
+| 7 | Parity & cutover | TODO |
+
+Phoenix app in `phoenix/`: skeleton (Phase 1), read-only features (Phase 2), authentication (Phase 3). The Next.js application code has not been modified. The DB `openmu` has not been written by Phoenix (no migrations run against it; verified `public.openmu_web_schema_migrations` does not exist there).
+
+## Decisions
+
+| # | Question | Decision (2026-09-27) |
+|---|---|---|
+| D1 | Security | **Fix R1, R2, R3** in Phoenix; do not port security vulnerabilities. Under the same principle Phoenix also fixes R4 (class from DB), R5 (atomic checks), R6 (server-side guards); for legitimate requests results are identical. |
+| D2 | Game rules | **Behavioral parity**: keep current rules in the first port — Reset Stats uses base 20; Reset does not change Experience or LevelUpPoints. Discrepancies with OpenMU are recorded (B3, B4) and handled separately; no scope expansion. |
+| D3 | API | **Keep all `/api/*` JSON endpoints** during the port for compatibility and testing. None removed. |
+| D4 | CSS | **Tailwind CSS v3** for maximum UI parity. |
+| D5 | Database | Allowed to use the `database` container for verification/tests. Phase 0: `openmu` read-only; writes only in disposable copies. |
+| D6 | Phoenix location | **`phoenix/` subdirectory of this repo**, Mix app `:open_mu_web`, modules `OpenMuWeb` / `OpenMuWebWeb`. Rationale: Next.js stays untouched at the root as the parity reference, both apps share `docs/` and `CLAUDE.md`, side-by-side testing against the same DB copy is simple, and later agents have one context. Cutover (Phase 7) can move Phoenix to the root or remove Next.js. |
+
+Deliberate behavior differences already accepted: D1 security fixes (incl. R10: `POST /api/characters/ranking/online` without `playersList` → 400 instead of every character); B2 (Phoenix implements working news pagination and news detail — current Next 16 app is broken there); rendering-only differences listed in Phase 2 results.
+
+## Phase 0 results
+
+### VERIFIED
+
+- PostgreSQL 18.6, DB `openmu`, 48 EF migrations (latest `20260723073950_CascadeDeleteMiniGameRankingEntries`). Dev DB with OpenMU default test data (20 accounts, 76 characters, 0 guilds, 0 news).
+- All 8 attribute UUIDs, all 18 class UUIDs, reset map UUIDs, and all 73 `mapEnum` UUIDs exist (`DATABASE.md` §3).
+- `CharacterStatus = 32` identifies GM characters in data and yields role `GAME_MASTER`.
+- Structures of Account, Character, StatAttribute, ItemStorage, Guild, GuildMember, OpenMuWeb_News; schema drift vs Prisma (4 config tables, 5 new columns with defaults).
+- `OpenMuWeb_News` exists and matches README DDL.
+- `session.user.id` is undefined at runtime → R3 exploitable; R1, R2, R4 reproduced.
+- Game server `/api/status`: `{"state","players","playersList"}` with `Content-Type: text/plain`.
+- API behaviors listed in `API.md` (Verification column), incl. game-server-down paths.
+- B2 (Next 16 params) broken; B3 base-stat discrepancy; B4 reset keeps Experience/LevelUpPoints.
+- Existing hashes `$2a$` verify with node bcrypt; new registrations write `$2b$10$`.
+
+### NOT VERIFIED (needs game client or data that does not exist)
+
+- Rejection of operations while a character is online (no player online).
+- Game-client login with a `$2b$` hash created by the website (ASSUMPTION: accepted).
+- In-game effect of reset (Experience unchanged) and validity of reset spawn coordinates.
+- Guild endpoints with real guild data (no guilds; `Logo` serialization, member `Status` values).
+- Concurrency races (R5).
+- NextAuth cookie names over HTTPS; signout endpoint.
+- Browser-only UI bugs (stale `name` in change password UI, register success toast on error).
+
+### ASSUMPTIONS
+
+- Production uses the same OpenMU schema version / config UUIDs as this dev DB.
+- `playersList` is an array of character names.
+- No external consumer depends on `/api/*` beyond the website itself.
+
+## Environment state (updated after Phase 2)
+
+- Containers `database`, `openmu-startup`, `nginx-80` are **running** (they were stopped before Phase 0).
+- Disposable DB `openmu_phase0` exists in the same cluster and contains test modifications (password change, stats, resets, news, account `p0user`). Safe to drop: `DROP DATABASE openmu_phase0;` (not needed for anything).
+- `docs/db/openmu_schema.sql` added (schema only, no data, no secrets).
+- Disposable DBs: `open_mu_web_test` (ExUnit, recreated by `phoenix/scripts/setup_test_db.sh`) and `openmu_parity` (Phase 2 parity fixtures; recreate with `TEST_DB=openmu_parity phoenix/scripts/setup_test_db.sh` + fixtures when needed).
+- `next dev` inserted the `nextjs-agent-rules` block into `CLAUDE.md` (kept; it is re-added on every `next dev`).
+
+## Phase 1 results (2026-09-27)
+
+### Delivered
+
+- Toolchain (user space, no sudo; SHA-256 checked): Erlang/OTP **28.5.0.7** (builds.hex.pm, ubuntu-26.04) in `~/.local/beam/otp`, Elixir **1.20.4-otp-28** in `~/.local/beam/elixir`, Hex, rebar, `phx_new` **1.8.15**. PATH line (marked `open-mu-web: BEAM toolchain`) appended to `~/.bashrc`.
+- `phoenix/` generated with `mix phx.new phoenix --app open_mu_web --module OpenMuWeb --binary-id --no-mailer`, then adapted:
+  - **DB safety**: `ecto.create/drop/reset/setup/load/rollback` aliases raise; `migration_source: "openmu_web_schema_migrations"`; `Phoenix.Ecto.CheckRepoStatus` removed; seeds removed; single migration `20260927000000_ensure_openmu_web_news.exs` (`CREATE TABLE IF NOT EXISTS`, `down` no-op).
+  - **Config**: `config/runtime.exs` reads env vars, then `phoenix/.env`, then the root `.env` (dev/test) with the Next.js variable names; `OpenMuWeb.Settings` parses them (empty ⇒ disabled). Dev/test Repo from `DATABASE_URL` / `TEST_DATABASE_URL` (no hard-coded credentials); tests refuse `openmu`. Default port **4001**. Session cookie signed **and encrypted**.
+  - **UI**: Tailwind **3.4.17** (`assets/tailwind.config.js` with the Next.js theme), daisyUI removed, core components restyled; `globals.css` rules ported (cursors, `p { white-space: pre }`); `public/img` → `priv/static/images`, favicon copied; Lora 400 latin self-hosted (`priv/static/fonts`, OFL).
+  - **Layout** (`Layouts.app` + `SiteComponents`): navbar, secondary nav (Discord link from settings), banner slider (JS in `app.js`), login form / user panel slot, sidebar (server statistics, characters ranking, guilds ranking — empty/offline until Phase 2), footer, flash (top-right, replaces react-toastify).
+  - Home page renders the NEWS section header (list in Phase 2).
+  - `scripts/setup_test_db.sh`: full copy `openmu` → `open_mu_web_test` via `pg_dump` (source read-only), refuses target `openmu`.
+  - `phoenix/AGENTS.md` (project rules header, Tailwind v3 / no daisyUI, `<p>` whitespace rule) and `phoenix/README.md`.
+
+### Verified
+
+- `mix compile --force --warnings-as-errors` passes (warnings only in deps).
+- `mix test`: **13 tests, 0 failures** (layout render, static assets, settings parsing, repo/migration source, test DB is a full OpenMU copy, news table columns).
+- All six blocked Ecto tasks print "Refusing to run".
+- `mix phx.server` against `openmu`: `GET /` 200, CSS/JS/images/font 200; Ecto accepts the shared `postgresql://` URL.
+- `openmu` has no `openmu_web_schema_migrations` table; the test DB has it with version `20260927000000`.
+
+### Not verified / known gaps
+
+- Pixel-level visual parity with the Next.js app (no headless browser available; markup/classes were ported 1:1).
+- Live reload in dev: needs `inotify-tools` (sudo) — pages work without it.
+- `/login`, `/logout`, `/info`, `/ranking`, etc. are not routed yet (Phase 2/3); the login form posts to `/login` (404 until Phase 3).
+- Sidebar data, avatars in rankings: Phase 2.
+
+## Phase 2 results (2026-09-27)
+
+### Delivered (`phoenix/`)
+
+- **Ecto schemas** (`lib/open_mu_web/openmu/`): `Account`, `Character`, `StatAttribute`, `ItemStorage`, `Guild`, `GuildMember` (prefix `data`/`guild`, PascalCase `source:`), `News.Article`; `OpenMU.Ids` (attribute ids, GM status 32, GuildMaster 2, class → avatar, 73 map names).
+- **Contexts**: `News` (4 per page, newest first, UUID regex like Next), `Rankings` (top characters pivot with `MAX(CASE … ELSE 0)`, top killers, online players), `Guilds` (top, members in Prisma order), `GameServer` (Req, explicit JSON decode of the `text/plain` body, key order kept; `cached_status/0` 5 s ETS cache for the sidebar, `status/0` always fresh), `Float32` (float4 output like node-postgres/JS: `385`, `0.1`).
+- **Pages** (controllers, sidebar via `:sidebar` pipeline): `/` news list + `?page=` (working, B2), `/news/:id`, `/info`, `/download` (empty links hidden), `/terms-and-conditions` (text copied verbatim from the Next.js render).
+- **Sidebar**: server status (Online/Offline, players), top 10 characters with avatars, top 5 guilds — loaded by plug / LiveView `on_mount` (`OpenMuWebWeb.Sidebar`).
+- **`/ranking` LiveView**: tabs Top Characters (50) / Top Killers (30) / Top Guilds (30) / Online Players, tab kept in `?tab=`; guild member popup on hover (colocated hook `.GuildHover`), same toasts as Next ("There was en error!", online-users error).
+- **Read-only JSON API** (`:api` pipeline, JSON regardless of Accept): `GET /api/status`, `GET /api/characters/ranking/reset|killers`, `POST /api/characters/ranking/online`, `GET /api/guilds`, `GET /api/guilds/:guild_name` — same URLs, status codes, messages, key order, `Logo` bytes shape, `messasge` typo.
+- **Parity tooling**: `phoenix/scripts/parity/api_parity.py`, `phoenix/scripts/parity/page_parity.py` (compare the two apps running on the same DB copy).
+
+### Test / parity results
+
+- `mix precommit` (compile `--warnings-as-errors`, format, tests): **61 tests, 0 failures** (4 runs, random seeds).
+- Side-by-side run on DB copy `openmu_parity` (fixtures: 3 guilds with members/logo, 6 news, distinct levels/kills) with a fake OpenMU status server (text/plain, 4 players incl. an unknown name):
+  - API: **13/13 cases byte-identical**, except the intended R10 difference.
+  - Pages (text incl. exact `<p>` whitespace, images): `/`, `/news/not-a-uuid`, `/info`, `/download`, `/terms-and-conditions` identical; `/?page=1` and `/news/<id>` differ **only because Next.js is broken there (B2)**.
+  - Game server down: `/api/status` identical (500 "There was an error"), sidebar offline in both.
+- `/ranking` LiveView rows match the Next.js API data (first rows, counts, online order).
+
+### Rendering-only differences (accepted)
+
+- Next.js `<button onClick=router.push>` → Phoenix `<a href>` (Download/Register, news card body, pagination, Return back).
+- Sidebar server status is rendered server-side (Next.js fetched it client-side; its first paint was always "offline / 0").
+- News date: en-US `M/D/YYYY` of the stored (UTC) value, rendered server-side (Next.js SSR produced the same; the browser re-render used the visitor's locale/timezone).
+- Ranking tab is in the URL (`?tab=`) instead of client state only.
+- The second banner image is pre-rendered hidden; hidden LiveView connection flashes exist in the HTML.
+
+### Discrepancies recorded (not changed, per D2/D3)
+
+- Guild popup shows a label only for Guild Master (2); OpenMU also has BattleMaster (3) and AssistantMaster (4), shown empty like Next.js.
+- OpenMU `Character.State` is `HeroState` (`New = 0`, `Normal = 3`): PK Clear sets `State = 0` ("New"). Relevant for Phase 4; kept as-is (D2).
+
+### Not verified
+
+- Visual/pixel parity (no headless browser); guild popup positioning in a real browser (covered by LiveView `render_hook` tests).
+- Behavior with real online players (only the fake status server was used).
+
+## Phase 3 results (2026-09-27)
+
+### Delivered
+
+- `OpenMuWeb.Accounts` (+ `CurrentAccount`, `Registration`): authenticate, GM flag from DB, register (zod-compatible validation and error JSON), change password (R1 fixed), bcrypt via `bcrypt_elixir` (cost 10, `$2b$`; tests use cost 4).
+- `OpenMuWebWeb.UserAuth` (plugs + `on_mount` hooks), `SessionController` (`POST /login`, `DELETE /logout`), user panel in the layout (Account, Characters, News for GMs, Sign Out).
+- LiveViews `/register` (terms checkbox gate, "The passwords must coincide") and `/account` (login required).
+- API: `POST /api/account/register`, `PUT /api/account/changepassword`, `GET /api/auth/session`; `Plugs.LenientParsers` parses `/api/*` bodies like `req.json()`.
+- Session cookie encrypted, 30 days; flash messages auto-close after 3 s (react-toastify parity).
+- `phoenix/scripts/parity/auth_parity.py`.
+
+### Test / parity results
+
+- `mix precommit`: **95 tests, 0 failures** (3 runs).
+- `auth_parity.py`: **0 failures** (register incl. ZodError bodies, logins + session JSON, change password, cross-app logins). Phase 2 `api_parity.py` 13/13 and `page_parity.py` (incl. `/register`, logged-in `/info` and `/account`) still match.
+
+### Deliberate differences (Phase 3)
+
+- R1: change password always targets the logged-in account (body `name` ignored).
+- R6: `/account` requires login server-side (Next.js served the page to anyone).
+- B1: `/register` shows validation failures as an error toast (text unchanged).
+- Roles are read from the DB on each request (Next.js froze them in the JWT at login).
+- NextAuth protocol endpoints replaced by `POST /login` / `DELETE /logout`; after login/logout the browser returns to the referring page (Next.js refreshed the current page).
+- JSON-valid but non-object bodies on other endpoints may differ in edge details (only register was matched exactly).
+
+### Open questions
+
+- R11: enforce a minimum length (e.g. 8, like register) for new passwords server-side? Kept as Next.js (no rule) until decided.
+
+### Not verified
+
+- Game client login with a website-created `$2b$` hash (no client; source evidence only).
+- Real-browser UX (toasts auto-close, Sign Out link with `data-method`) — covered by LiveView/controller tests and HTML parity only.
+
+## Blockers before Phase 4
+
+- None.
+
+## Log
+
+- 2026-09-27 — Repository analysis completed; docs created (`CLAUDE.md`, `docs/*`).
+- 2026-09-27 — Decisions D1–D6 recorded. Phase 0 verification against DB, OpenMU game server and Next.js (on DB clone) completed; docs updated with VERIFIED / NOT VERIFIED / ASSUMPTION labels.
+- 2026-09-27 — Phase 1 done: BEAM toolchain installed in user space; Phoenix skeleton in `phoenix/` (DB guards, runtime config, Tailwind v3 layout, test DB script, 13 passing tests).
+- 2026-09-27 — Phase 2 done: read-only features (schemas, contexts, pages, sidebar, `/ranking` LiveView, read-only `/api/*`), 61 tests, API/page parity checked side by side with Next.js.
+- 2026-09-27 — Phase 3 done: authentication (login/logout, session, guards, register, change password, `/api/account/*`, `/api/auth/session`), 95 tests, auth parity 0 failures.

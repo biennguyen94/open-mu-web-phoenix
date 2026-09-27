@@ -1,0 +1,9 @@
+<Layouts.app flash={@flash} sidebar={@sidebar} current_account={@current_account}>
+  <div class="flex flex-col gap-3 mx-auto w-full px-20">
+    <.return_to_home_button />
+    <.news_card :if={@article} article={@article} />
+    <div :if={is_nil(@article)} class="flex justify-center">
+      <p class="text-primary text-xl mt-10" phx-no-format>No News was found!</p>
+    </div>
+  </div>
+</Layouts.app>
