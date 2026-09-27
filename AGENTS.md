@@ -1,6 +1,6 @@
 # Project rules (read first)
 
-- This Phoenix app ports the Next.js app in the parent directory. Read `../CLAUDE.md` and `../docs/` before working.
+- This Phoenix app is the port of the Next.js app https://github.com/biennguyen94/open-mu-web. Read `CLAUDE.md` and `docs/` before working.
 - The database is the EXISTING OpenMU database. `mix ecto.create/drop/reset/setup/load/rollback` are blocked on purpose; never work around them. Tests use a disposable full copy created by `scripts/setup_test_db.sh`.
 - Toolchain: `export PATH="$HOME/.local/beam/otp/bin:$HOME/.local/beam/elixir/bin:$PATH"` (OTP 28.5, Elixir 1.20.4, Phoenix 1.8.15).
 
@@ -32,7 +32,7 @@ custom classes must fully style the input
   - `assets/css/app.css` uses `@tailwind base; @tailwind components; @tailwind utilities;` — **do not** switch it to the v4 `@import "tailwindcss"` syntax
   - There is **no daisyUI**; do not use daisyUI classes (`btn`, `alert`, `input`, `table-zebra`, `base-content`, ...)
 - The global rule `p { white-space: pre }` (ported from the Next.js app) renders whitespace inside `<p>` literally: keep `<p>` content on one line and mark such tags `phx-no-format`
-- **Always** port markup and Tailwind classes from the Next.js components (`../app/**`) for UI parity instead of inventing a new design
+- **Always** port markup and Tailwind classes from the Next.js components (`app/**` in https://github.com/biennguyen94/open-mu-web) for UI parity instead of inventing a new design
 - Out of the box **only the app.js and app.css bundles are supported**
   - You cannot reference an external vendor'd script `src` or link `href` in the layouts
   - You must import the vendor deps into app.js and app.css to use them

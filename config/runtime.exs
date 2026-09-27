@@ -4,8 +4,7 @@ import Config
 # Environment loading
 #
 # Real environment variables always win. In dev/test, missing values are read
-# from `phoenix/.env` and then from the repository root `.env` shared with the
-# Next.js app, so both apps run against the same configuration.
+# from the `.env` file at the repository root (gitignored, see `.env.example`).
 # ---------------------------------------------------------------------------
 read_dotenv = fn path ->
   if File.exists?(path) do
@@ -35,10 +34,7 @@ end
 
 dotenv =
   if config_env() in [:dev, :test] do
-    Map.merge(
-      read_dotenv.(Path.expand("../../.env", __DIR__)),
-      read_dotenv.(Path.expand("../.env", __DIR__))
-    )
+    read_dotenv.(Path.expand("../.env", __DIR__))
   else
     %{}
   end
@@ -47,7 +43,7 @@ env = fn key, default -> System.get_env(key) || Map.get(dotenv, key) || default 
 
 # ---------------------------------------------------------------------------
 # Website settings (same variable names as the Next.js app; see
-# ../docs/ARCHITECTURE.md). Raw strings are parsed by OpenMuWeb.Settings.
+# docs/ARCHITECTURE.md). Raw strings are parsed by OpenMuWeb.Settings.
 # An empty value disables the corresponding feature, exactly like the Next.js app.
 # ---------------------------------------------------------------------------
 # Tests use fixed settings from config/test.exs (independent of any .env file).
@@ -75,8 +71,8 @@ case config_env() do
     database_url =
       env.("DATABASE_URL", nil) ||
         raise """
-        DATABASE_URL is missing. Set it in the environment, in phoenix/.env or in the
-        repository root .env (the Next.js app's file), e.g.
+        DATABASE_URL is missing. Set it in the environment or in .env at the
+        repository root (see .env.example), e.g.
         postgresql://USER:PASS@localhost:5433/openmu
         """
 

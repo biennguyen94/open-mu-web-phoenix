@@ -1,7 +1,7 @@
 # OpenMU Web (Phoenix) next to the OpenMU all-in-one stack
 # (/home/bien_nguyen/OpenMU/deploy/all-in-one: containers database, openmu-startup, nginx-80).
 #
-#   cd phoenix/deploy && cp .env.example .env   # then fill in the values
+#   cd deploy && cp .env.example .env   # then fill in the values
 #   docker compose up -d --build
 #
 # The site joins the OpenMU compose network so it reaches the database as

@@ -72,7 +72,7 @@ defmodule OpenMuWeb.MixProject do
   # Aliases are shortcuts or tasks specific to the current project.
   #
   # The database is the EXISTING OpenMU database shared with the game server
-  # (see ../CLAUDE.md and ../docs/DATABASE.md). Ecto does not own it, so the
+  # (see CLAUDE.md and docs/DATABASE.md). Ecto does not own it, so the
   # generator's create/drop/reset/load aliases are replaced by guards that refuse
   # to run. The test database is provisioned by scripts/setup_test_db.sh.
   defp aliases do

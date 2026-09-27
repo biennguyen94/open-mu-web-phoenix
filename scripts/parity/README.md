@@ -1,5 +1,8 @@
 # Parity checks (Next.js vs Phoenix)
 
+The Next.js app is not part of this repository: check out
+https://github.com/biennguyen94/open-mu-web (with `npm ci`) next to it, or set `NEXT_APP_DIR`.
+
 **One command:** `./run_all.sh` — creates the disposable DB copies, starts the fake game
 server, Next.js (:4100) and Phoenix (:4101) for each stage, runs every check below and
 stops everything (logs in a temp dir). Exit code 0 when all checks pass.
@@ -18,9 +21,10 @@ docker exec -i database psql -U postgres -d openmu_parity -v ON_ERROR_STOP=1 < f
 
 # 3. Next.js on :4100 and Phoenix on :4101, both on openmu_parity
 #    (DATABASE_URL = the .env URL with the database replaced by openmu_parity)
-#    repo root:  DATABASE_URL=... NEXT_PUBLIC_URL=http://localhost:4100 NEXTAUTH_URL=http://localhost:4100 \
+#    Next.js checkout (https://github.com/biennguyen94/open-mu-web):
+#                DATABASE_URL=... NEXT_PUBLIC_URL=http://localhost:4100 NEXTAUTH_URL=http://localhost:4100 \
 #                GAMESERVER_URL=http://localhost:18080 npx next dev -p 4100
-#    phoenix/:   DATABASE_URL=... GAMESERVER_URL=http://localhost:18080 PORT=4101 mix phx.server
+#    this repo:  DATABASE_URL=... GAMESERVER_URL=http://localhost:18080 PORT=4101 mix phx.server
 
 # 4. Compare
 ./api_parity.py
@@ -44,4 +48,4 @@ Admin news, same idea (per-app copies `openmu_p5_next` / `openmu_p5_phx`, `./fak
 ./page_parity.py http://localhost:4100 http://localhost:4101 / "/?page=1" /info /download /terms-and-conditions
 ```
 
-Expected differences are documented in `../../../docs/PORTING_STATUS.md` (R10, B2, rendering-only items).
+Expected differences are documented in `../../docs/PORTING_STATUS.md` (R10, B2, rendering-only items).

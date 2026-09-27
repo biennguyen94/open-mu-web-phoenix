@@ -1,5 +1,5 @@
 // Tailwind CSS v3 (decision D4: UI parity with the Next.js app).
-// Theme values are copied from ../../tailwind.config.ts of the Next.js app.
+// Theme values are copied from tailwind.config.ts of the Next.js app (https://github.com/biennguyen94/open-mu-web).
 module.exports = {
   content: [
     "./js/**/*.js",

@@ -13,7 +13,9 @@ Last updated: 2026-09-27
 | 6 | API compatibility review | **DONE** (2026-09-27) |
 | 7 | Parity & cutover | **DONE** (2026-09-27) — deployed on Docker (WSL), see `docs/DEPLOY.md`; open items listed in Phase 7 results |
 
-Phoenix app in `phoenix/`: skeleton (Phase 1), read-only features (Phase 2), authentication (Phase 3), character operations (Phase 4), admin news (Phase 5), API compatibility review (Phase 6), deployed on Docker (Phase 7) — **the live site is the Phoenix container `openmu-web` on port 4000**. The Next.js application code has not been modified (kept for rollback). The DB `openmu` has not been written by Phoenix outside normal site usage (no migrations run against it; verified `public.openmu_web_schema_migrations` does not exist there).
+> Since 2026-09-27 this app lives in its own repository (https://github.com/biennguyen94/open-mu-web-phoenix, history kept from Phase 3); `phoenix/<path>` below means `<path>` there — see `docs/README.md`.
+
+Phoenix app (formerly in `phoenix/`): skeleton (Phase 1), read-only features (Phase 2), authentication (Phase 3), character operations (Phase 4), admin news (Phase 5), API compatibility review (Phase 6), deployed on Docker (Phase 7) — **the live site is the Phoenix container `openmu-web` on port 4000**. The Next.js application code has not been modified (kept for rollback). The DB `openmu` has not been written by Phoenix outside normal site usage (no migrations run against it; verified `public.openmu_web_schema_migrations` does not exist there).
 
 ## Decisions
 
@@ -292,3 +294,4 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 - 2026-09-27 — Phase 6 done: API surface audited and aligned (405/OPTIONS/308/content-type), `run_all.sh` parity runner, 141 tests.
 - 2026-09-27 — Phase 7 done: release image + compose on the OpenMU Docker network, deployed on WSL (port 4000), staging + production smoke tests; open items: R7 rotation, R9, R11, manual game-client/browser checks.
 - 2026-09-27 — D7 recorded: default test accounts (R9) accepted for publishing.
+- 2026-09-27 — Split into its own repository `open-mu-web-phoenix` (Phoenix app at the root, `docs/`, `CLAUDE.md`; history from the Phase 3 commit). The Next.js app stays in `open-mu-web`.
