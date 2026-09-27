@@ -13,6 +13,7 @@ defmodule OpenMuWeb.OpenMU.Character do
     field :character_class_id, :binary_id, source: :CharacterClassId
     field :current_map_id, :binary_id, source: :CurrentMapId
     field :name, :string, source: :Name
+    field :character_slot, :integer, source: :CharacterSlot
     field :experience, :integer, source: :Experience
     field :level_up_points, :integer, source: :LevelUpPoints
     field :master_level_up_points, :integer, source: :MasterLevelUpPoints

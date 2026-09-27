@@ -61,6 +61,7 @@ defmodule OpenMuWebWeb.Router do
       pipe_through [:browser, :require_authenticated]
 
       live "/account", AccountLive
+      live "/characters", CharactersLive
     end
   end
 
@@ -77,6 +78,11 @@ defmodule OpenMuWebWeb.Router do
     get "/auth/session", AuthController, :session
     post "/account/register", AccountController, :register
     put "/account/changepassword", AccountController, :change_password
+
+    post "/characters/addstats", CharacterController, :add_stats
+    post "/characters/pkclear", CharacterController, :pk_clear
+    post "/characters/reset", CharacterController, :reset
+    post "/characters/resetStats", CharacterController, :reset_stats
   end
 
   if Application.compile_env(:open_mu_web, :dev_routes) do

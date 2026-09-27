@@ -3,7 +3,8 @@
 cross-app: an account created by one app logs in on the other), NextAuth-style
 session JSON and the change-password API.
 
-Both apps must use the same disposable DB copy (see README.md). Creates accounts
+Both apps must use the SAME disposable DB copy (e.g. `openmu_parity`, see README.md);
+with separate copies the cross-app login checks fail by construction. Creates accounts
 with a random suffix on each run.
 Usage: auth_parity.py [NEXT_BASE] [PHOENIX_BASE]
 """

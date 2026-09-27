@@ -117,7 +117,11 @@ Verification column: runtime test on 2026-09-27 (Next.js dev on port 4100, dispo
 | `PUT /api/account/changepassword` | `Api.AccountController.change_password` (3) | identical messages/status; **R1** fixed (logged-in account only) |
 | `GET /api/auth/session` | `Api.AuthController.session` (3) | same JSON shape (`expires` = now + 30 days) |
 | other `/api/auth/*` (NextAuth protocol) | not ported — `POST /login`, `DELETE /logout` | deliberate |
-| character / admin endpoints | Phase 4 / 5 | — |
+| `POST /api/characters/addstats` | `Api.CharacterController.add_stats` (4) | identical messages/status; **R2/R3/R5** fixed |
+| `POST /api/characters/pkclear` | `Api.CharacterController.pk_clear` (4) | identical; **R3/R5** fixed |
+| `POST /api/characters/reset` | `Api.CharacterController.reset` (4) | identical; **R3/R4/R5** fixed (`clasId` ignored) |
+| `POST /api/characters/resetStats` | `Api.CharacterController.reset_stats` (4) | identical; **R3/R5** fixed |
+| admin endpoints | Phase 5 | — |
 
 VERIFIED from OpenMU source (`src/Web/AdminPanel/API/ServerController.cs`): `playersList` is the list of player (character) names and `state` is always `"Online"` when the admin panel answers; the JSON is returned via `Ok(string)`, hence `text/plain`.
 

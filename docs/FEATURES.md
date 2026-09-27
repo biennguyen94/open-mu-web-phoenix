@@ -119,3 +119,11 @@ No selection step. `/characters` lists every character of the logged-in account 
 
 - Add: GM check from DB → insert with `author` = first GM character's name. No server-side validation (client maxLength title 200, body 3000).
 - Delete: GM check → delete by id; client shows confirmation dialog then `router.refresh()`.
+
+## Phoenix implementation (Phase 4)
+
+- `OpenMuWeb.Characters` (`list_for_account/1`, `add_stats/3`, `pk_clear/2`, `reset/2`, `reset_stats/2`) is used by both `/characters` (`CharactersLive`) and `/api/characters/*` (`Api.CharacterController`); messages / statuses per route in `OpenMuWebWeb.CharacterMessages`.
+- Game rules identical (D2): verified by running the same sequence on two identical DB copies (`phoenix/scripts/parity/char_parity.py`) — same responses, same final state for all 76 characters except the security-fix cases.
+- Security fixes: R2 (integer >= 0 amounts), R3 (character must belong to the logged-in account), R4 (reset location from the DB class), R5 (transaction + `FOR UPDATE`, checks inside).
+- Kept on purpose: B3 (reset stats base 20), B4 (reset keeps Experience / LevelUpPoints), B5 (Leadership points spent without a Leadership row), B14 (PK clear sets `State = 0` = HeroState.New).
+- UI differences: cards ordered by `CharacterSlot` (Next.js order was arbitrary — same cards as a set); the page requires login (Next.js showed "no characters"); after any successful operation the data is reloaded (Next.js left the Add Stats values stale after closing the card).

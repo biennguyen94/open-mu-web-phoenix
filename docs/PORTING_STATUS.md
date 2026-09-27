@@ -8,12 +8,12 @@ Last updated: 2026-09-27
 | 1 | Phoenix skeleton | **DONE** (2026-09-27) |
 | 2 | Read-only features | **DONE** (2026-09-27) |
 | 3 | Authentication | **DONE** (2026-09-27) |
-| 4 | Character operations | TODO |
+| 4 | Character operations | **DONE** (2026-09-27) |
 | 5 | Admin | TODO |
 | 6 | API compatibility review | TODO |
 | 7 | Parity & cutover | TODO |
 
-Phoenix app in `phoenix/`: skeleton (Phase 1), read-only features (Phase 2), authentication (Phase 3). The Next.js application code has not been modified. The DB `openmu` has not been written by Phoenix (no migrations run against it; verified `public.openmu_web_schema_migrations` does not exist there).
+Phoenix app in `phoenix/`: skeleton (Phase 1), read-only features (Phase 2), authentication (Phase 3), character operations (Phase 4). The Next.js application code has not been modified. The DB `openmu` has not been written by Phoenix (no migrations run against it; verified `public.openmu_web_schema_migrations` does not exist there).
 
 ## Decisions
 
@@ -64,7 +64,7 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 - Containers `database`, `openmu-startup`, `nginx-80` are **running** (they were stopped before Phase 0).
 - Disposable DB `openmu_phase0` exists in the same cluster and contains test modifications (password change, stats, resets, news, account `p0user`). Safe to drop: `DROP DATABASE openmu_phase0;` (not needed for anything).
 - `docs/db/openmu_schema.sql` added (schema only, no data, no secrets).
-- Disposable DBs: `open_mu_web_test` (ExUnit, recreated by `phoenix/scripts/setup_test_db.sh`) and `openmu_parity` (Phase 2 parity fixtures; recreate with `TEST_DB=openmu_parity phoenix/scripts/setup_test_db.sh` + fixtures when needed).
+- Disposable DBs: `open_mu_web_test` (ExUnit, recreated by `phoenix/scripts/setup_test_db.sh`) and `openmu_parity` (Phase 2 parity fixtures; recreate with `TEST_DB=openmu_parity phoenix/scripts/setup_test_db.sh` + fixtures when needed). Phase 4: `openmu_p4_next`, `openmu_p4_phx` (per-app copies for `char_parity.py`; recreate before each run).
 - `next dev` inserted the `nextjs-agent-rules` block into `CLAUDE.md` (kept; it is re-added on every `next dev`).
 
 ## Phase 1 results (2026-09-27)
@@ -169,7 +169,41 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 - Game client login with a website-created `$2b$` hash (no client; source evidence only).
 - Real-browser UX (toasts auto-close, Sign Out link with `data-method`) — covered by LiveView/controller tests and HTML parity only.
 
-## Blockers before Phase 4
+## Phase 4 results (2026-09-27)
+
+### Delivered
+
+- `OpenMuWeb.Characters`: panel data (pivot, `ORDER BY CharacterSlot`), `add_stats/3`, `pk_clear/2`, `reset/2`, `reset_stats/2`, `enabled?/1`, `ensure_offline/1`; `Ids.stat_ids/0`, `Ids.reset_location/1`, `Ids.leadership_class?/1`; `Character.character_slot`.
+- `/characters` LiveView (cards, Reset / Add Stats / Pk Clear / Reset Stats buttons hidden when disabled, Add Stats card with Leadership only for DL/LE, toasts), login required.
+- `POST /api/characters/{addstats,pkclear,reset,resetStats}` (`Api.CharacterController`, `OpenMuWebWeb.CharacterMessages`).
+- `phoenix/scripts/parity/char_parity.py` (two identical DB copies, same sequence, response + final state diff).
+
+### Test / parity results
+
+- `mix precommit`: **122 tests, 0 failures** (4 runs).
+- `char_parity.py` on fresh `openmu_p4_next` / `openmu_p4_phx`: **0 failures** — identical responses for all regular cases (anonymous, own characters, online character, not enough points / zen, not eligible, invalid JSON, unknown character, DL leadership, B5, resets of elf / BM / LE…); final state identical for all 76 characters except the expected R2 / R3 / R4 cases.
+- `/characters` page: same cards and texts as Next.js (compared as a set; order now by slot).
+- Race test (R5): 8 parallel PK clears with zen for one — Next.js 2 successes and Money −500,000; Phoenix 1 success, Money 500,000.
+- API 13/13 and pages still identical; auth parity passes on a shared DB (its cross-app checks need `openmu_parity`).
+
+### Deliberate differences (Phase 4)
+
+- R2: amounts must be integers >= 0 (Next.js accepted negatives and fractions).
+- R3: only the logged-in account's characters (Next.js: any character).
+- R4: reset location from the DB class (`clasId` ignored).
+- R5: no double spending under concurrency.
+- `/characters` requires login; cards ordered by `CharacterSlot`; data reloaded after every successful operation.
+
+### Kept on purpose (D2) — follow-ups outside the port
+
+- B3 reset stats base 20 (OpenMU base values differ per class), B4 reset keeps Experience / LevelUpPoints, B5 Leadership points spent without a Leadership row, B14 PK clear sets HeroState.New (0) instead of Normal (3).
+
+### Not verified
+
+- In-game effects of these operations (no game client): reset with unchanged Experience, State 0 after PK clear, reset spawn coordinates.
+- A character going online *during* an operation (the online check happens before the transaction, like Next.js).
+
+## Blockers before Phase 5
 
 - None.
 
@@ -180,3 +214,4 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 - 2026-09-27 — Phase 1 done: BEAM toolchain installed in user space; Phoenix skeleton in `phoenix/` (DB guards, runtime config, Tailwind v3 layout, test DB script, 13 passing tests).
 - 2026-09-27 — Phase 2 done: read-only features (schemas, contexts, pages, sidebar, `/ranking` LiveView, read-only `/api/*`), 61 tests, API/page parity checked side by side with Next.js.
 - 2026-09-27 — Phase 3 done: authentication (login/logout, session, guards, register, change password, `/api/account/*`, `/api/auth/session`), 95 tests, auth parity 0 failures.
+- 2026-09-27 — Phase 4 done: character panel + operations (API + LiveView) with R2–R5 fixes, 122 tests, char parity 0 failures, live race test.

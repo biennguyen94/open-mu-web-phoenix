@@ -67,6 +67,33 @@ defmodule OpenMuWeb.Fixtures do
 
   defp usec(%NaiveDateTime{microsecond: {us, _}} = dt), do: %{dt | microsecond: {us, 6}}
 
+  @doc "Money of a character's inventory."
+  def money!(name) do
+    %{inventory_id: id} = character!(name)
+    Repo.get!(OpenMuWeb.OpenMU.ItemStorage, id).money
+  end
+
+  def set_money!(name, money) do
+    %{inventory_id: id} = character!(name)
+
+    {1, _} =
+      from(s in OpenMuWeb.OpenMU.ItemStorage, where: s.id == ^id)
+      |> Repo.update_all(set: [money: money])
+
+    :ok
+  end
+
+  @doc "StatAttribute value of a character (nil when the row does not exist)."
+  def stat(name, definition_id) do
+    %{id: id} = character!(name)
+
+    from(sa in StatAttribute,
+      where: sa.character_id == ^id and sa.definition_id == ^definition_id,
+      select: sa.value
+    )
+    |> Repo.one()
+  end
+
   def delete_all_news!, do: Repo.delete_all(Article)
 
   # --- Game server stubs (Req.Test) -------------------------------------------------

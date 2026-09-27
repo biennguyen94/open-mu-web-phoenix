@@ -60,13 +60,13 @@ open-mu-web/                 (this repo)
 - [x] `/api/account/register`, `/api/account/changepassword`, `/api/auth/session`.
 - [x] Verified: legacy `$2a$` accounts log in; accounts/passwords created by either app work on the other. Game-client login with `$2b$`: not verifiable without a client (source evidence only).
 
-## Phase 4 — Character operations
+## Phase 4 — Character operations — DONE (2026-09-27)
 
-- `/characters` LiveView (pivot query).
-- PK Clear → Add Stats → Reset Stats → Reset: `Ecto.Multi`, row locks, in-transaction checks, ownership by `AccountId` (R3), integer validation (R2), class from DB (R4), online check via `GameServer`.
-- Game rules unchanged (D2): reset stats base 20; reset keeps Experience/LevelUpPoints.
-- `/api/characters/*` controllers with current messages/status codes.
-- Integration tests on the disposable DB.
+- [x] `/characters` LiveView (pivot query, login required).
+- [x] PK Clear, Add Stats, Reset Stats, Reset: transaction + `FOR UPDATE` on character and inventory, checks inside (R5), ownership by `AccountId` (R3), integer validation (R2), class from DB (R4), online check via `GameServer`.
+- [x] Game rules unchanged (D2).
+- [x] `/api/characters/*` controllers with the Next.js messages/status codes.
+- [x] Integration tests on the disposable DB + side-by-side parity (`char_parity.py`) + live race test.
 
 ## Phase 5 — Admin
 

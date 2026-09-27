@@ -117,7 +117,7 @@ Design notes:
 - **GameServer** is called directly from the context — no HTTP self-call.
 - **GameServer** must decode JSON explicitly: OpenMU answers `/api/status` with `Content-Type: text/plain` (VERIFIED).
 - Contexts: Accounts, Characters, Rankings, Guilds, News, GameServer, Settings.
-- Implemented (Phase 2): `OpenMU.*` schemas + `OpenMU.Ids`, `News`, `Rankings`, `Guilds`, `GameServer` (+ `GameServer.Cache`), `Float32`, `Settings`; web: `NewsController`, `PageController`, `RankingLive`, `Api.StatusController` / `Api.RankingController` / `Api.GuildController`, `Sidebar` (plug + on_mount), `SiteComponents`, `NewsComponents`. Phase 3: `Accounts` (+ `CurrentAccount`, `Registration`), `UserAuth`, `SessionController`, `RegisterLive`, `AccountLive`, `Api.AccountController`, `Api.AuthController`, `Plugs.LenientParsers`. Pending: `Characters` (Phase 4), admin (Phase 5).
+- Implemented (Phase 2): `OpenMU.*` schemas + `OpenMU.Ids`, `News`, `Rankings`, `Guilds`, `GameServer` (+ `GameServer.Cache`), `Float32`, `Settings`; web: `NewsController`, `PageController`, `RankingLive`, `Api.StatusController` / `Api.RankingController` / `Api.GuildController`, `Sidebar` (plug + on_mount), `SiteComponents`, `NewsComponents`. Phase 3: `Accounts` (+ `CurrentAccount`, `Registration`), `UserAuth`, `SessionController`, `RegisterLive`, `AccountLive`, `Api.AccountController`, `Api.AuthController`, `Plugs.LenientParsers`. Phase 4: `Characters`, `CharactersLive`, `Api.CharacterController`, `CharacterMessages`. Pending: admin news (Phase 5).
 
 ## 3. Dependency mapping
 

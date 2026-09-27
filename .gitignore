@@ -38,3 +38,6 @@ npm-debug.log
 
 # Local environment (secrets). The shared ../.env of the Next.js app is also read in dev/test.
 .env
+
+# Python bytecode of the parity scripts
+__pycache__/

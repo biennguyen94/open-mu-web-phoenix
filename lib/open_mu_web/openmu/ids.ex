@@ -23,6 +23,28 @@ defmodule OpenMuWeb.OpenMU.Ids do
   def energy, do: @energy
   def leadership, do: @leadership
 
+  @doc "The attributes a player distributes points to (Str, Agi, Vit, Ene, Leadership)."
+  def stat_ids, do: [@strength, @agility, @vitality, @energy, @leadership]
+
+  @doc "Classes that show / use Leadership in the Add Stats card (Dark Lord, Lord Emperor)."
+  def leadership_class?(class_id),
+    do:
+      class_id in ["00000040-0010-0000-0000-000000000000", "00000040-0011-0000-0000-000000000000"]
+
+  @lorencia {"00000300-0000-0000-0000-000000000000", 141, 121}
+  @noria {"00000300-0003-0000-0000-000000000000", 176, 116}
+  @elbeland {"00000300-0033-0000-0000-000000000000", 51, 226}
+  @elf_classes ~w(00000040-000b-0000-0000-000000000000 00000040-000a-0000-0000-000000000000 00000040-0008-0000-0000-000000000000)
+  @summoner_classes ~w(00000040-0017-0000-0000-000000000000 00000040-0016-0000-0000-000000000000 00000040-0014-0000-0000-000000000000)
+
+  @doc """
+  `{map_id, x, y}` a character is moved to by a reset (port of the reset route):
+  elves → Noria (176, 116), summoners → Elbeland (51, 226), others → Lorencia (141, 121).
+  """
+  def reset_location(class_id) when class_id in @elf_classes, do: @noria
+  def reset_location(class_id) when class_id in @summoner_classes, do: @elbeland
+  def reset_location(_class_id), do: @lorencia
+
   @doc "OpenMU `CharacterStatus.GameMaster`."
   def game_master_status, do: 32
 

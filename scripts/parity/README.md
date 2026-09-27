@@ -19,6 +19,15 @@ docker exec -i database psql -U postgres -d openmu_parity -v ON_ERROR_STOP=1 < f
 # 4. Compare
 ./api_parity.py
 ./auth_parity.py        # register / login / session / change password (creates accounts)
+```
+
+Character operations write data, so each app gets its **own** fresh copy instead:
+
+```bash
+TEST_DB=openmu_p4_next ../setup_test_db.sh; TEST_DB=openmu_p4_phx ../setup_test_db.sh
+./fake_game_server.py test1Dl test400Mg &          # two characters "online"
+# Next.js :4100 on openmu_p4_next, Phoenix :4101 on openmu_p4_phx
+./char_parity.py                                   # responses + final DB state diff
 ./page_parity.py http://localhost:4100 http://localhost:4101 / "/?page=1" /info /download /terms-and-conditions
 ```
 
