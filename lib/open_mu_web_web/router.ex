@@ -2,7 +2,9 @@ defmodule OpenMuWebWeb.Router do
   use OpenMuWebWeb, :router
 
   import OpenMuWebWeb.Sidebar, only: [assign_sidebar: 2]
-  import OpenMuWebWeb.UserAuth, only: [fetch_current_account: 2, require_authenticated: 2]
+
+  import OpenMuWebWeb.UserAuth,
+    only: [fetch_current_account: 2, require_authenticated: 2, require_gm: 2]
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -65,6 +67,21 @@ defmodule OpenMuWebWeb.Router do
     end
   end
 
+  live_session :game_master,
+    on_mount: [{OpenMuWebWeb.UserAuth, :require_gm}, {OpenMuWebWeb.Sidebar, :default}] do
+    scope "/", OpenMuWebWeb do
+      pipe_through [:browser, :require_gm]
+
+      live "/admin/news", AdminNewsLive
+    end
+  end
+
+  scope "/", OpenMuWebWeb do
+    pipe_through [:browser, :require_gm]
+
+    delete "/admin/news/:id", AdminNewsController, :delete
+  end
+
   scope "/api", OpenMuWebWeb.Api do
     pipe_through :api
 
@@ -83,6 +100,9 @@ defmodule OpenMuWebWeb.Router do
     post "/characters/pkclear", CharacterController, :pk_clear
     post "/characters/reset", CharacterController, :reset
     post "/characters/resetStats", CharacterController, :reset_stats
+
+    post "/admin/news", AdminNewsController, :create
+    delete "/admin/news/:id", AdminNewsController, :delete
   end
 
   if Application.compile_env(:open_mu_web, :dev_routes) do

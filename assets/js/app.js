@@ -67,6 +67,22 @@ const initBanners = () => {
 }
 window.addEventListener("DOMContentLoaded", initBanners)
 
+// News "Delete" confirmation dialog (port of DeleteConfirmationDialog.tsx): the
+// Delete button shows the dialog, "No" hides it, "Yes" submits the DELETE form.
+document.addEventListener("click", e => {
+  const open = e.target.closest("[data-news-delete]")
+  if (open) {
+    const dialog = document.getElementById(open.dataset.newsDelete)
+    if (dialog) { dialog.hidden = false; dialog.classList.add("flex") }
+    return
+  }
+  const cancel = e.target.closest("[data-news-cancel]")
+  if (cancel) {
+    const dialog = cancel.closest("[data-news-dialog]")
+    if (dialog) { dialog.hidden = true; dialog.classList.remove("flex") }
+  }
+})
+
 // Flash messages close by themselves after 3 s, like the react-toastify container
 // (autoClose={3000}) of the Next.js app. Connection-state flashes are left alone.
 const autoCloseFlash = () => {

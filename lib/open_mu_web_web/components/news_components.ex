@@ -1,7 +1,9 @@
 defmodule OpenMuWebWeb.NewsComponents do
   @moduledoc """
   News UI ported from `NewsCard.tsx`, `ChangePageButton.tsx` and
-  `ReturnToHomeButton.tsx`. (The GM "Delete" button arrives with admin news, Phase 5.)
+  `ReturnToHomeButton.tsx`, `DeleteConfirmationDialog.tsx`. Game Masters get a
+  "Delete" button that opens the confirmation dialog (assets/js/app.js); "Yes"
+  submits `DELETE /admin/news/:id`.
   """
   use OpenMuWebWeb, :html
 
@@ -10,13 +12,24 @@ defmodule OpenMuWebWeb.NewsComponents do
   @doc "A news card; `short` truncates the body to 350 characters like the home page."
   attr :article, :map, required: true
   attr :short, :boolean, default: false
+  attr :gm, :boolean, default: false, doc: "show the Delete button (logged-in Game Master)"
 
   def news_card(assigns) do
     ~H"""
     <div class="bg-slate-200/[0.3] border-2 border-slate-200/[0.5] rounded-lg p-3 text-primary mt-4 hover:border-secondary/[0.4]">
+      <.delete_confirmation_dialog :if={@gm} article={@article} />
       <div class="flex justify-between h-fit">
         <div class="h-fit">
           <h2 class="text-primary text-xl font-semibold">{@article.title}</h2>
+        </div>
+        <div :if={@gm} class="h-fit ">
+          <button
+            type="button"
+            class=" bg-red-100 hover:bg-red-200/[0.9] p-1 rounded-lg px-2  mx-auto shadow-md text-red-500"
+            data-news-delete={"news-delete-#{@article.id}"}
+          >
+            Delete
+          </button>
         </div>
       </div>
       <hr class="h-[2px] my-4 bg-slate-50 border-0" />
@@ -25,6 +38,35 @@ defmodule OpenMuWebWeb.NewsComponents do
       </.link>
       <div class="flex justify-end w-full">
         <p class="text-sm italic" phx-no-format>{date(@article.creation_date)} <span class="text-md"> {@article.author}</span></p>
+      </div>
+    </div>
+    """
+  end
+
+  attr :article, :map, required: true
+
+  defp delete_confirmation_dialog(assigns) do
+    ~H"""
+    <div
+      id={"news-delete-#{@article.id}"}
+      class="flex-col p-10 fixed inset-0 bg-slate-50 border-2 mx-auto my-auto w-fit h-fit rounded-md z-20"
+      data-news-dialog
+      hidden
+    >
+      <p class="text-primary text-xl" phx-no-format>Are you sure you want to delete this news?</p>
+      <div class="flex p-5 justify">
+        <.form for={%{}} action={~p"/admin/news/#{@article.id}"} method="delete" class="mx-auto">
+          <button class="  bg-red-100 hover:bg-red-200/[0.9] p-1 rounded-lg px-2  mx-auto shadow-md text-red-500">
+            Yes
+          </button>
+        </.form>
+        <button
+          type="button"
+          class="bg-secondary/[0.6] hover:bg-secondary/[0.9] p-1 rounded-lg px-2  mx-auto shadow-md text-primary"
+          data-news-cancel
+        >
+          No
+        </button>
       </div>
     </div>
     """

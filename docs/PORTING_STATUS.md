@@ -9,11 +9,11 @@ Last updated: 2026-09-27
 | 2 | Read-only features | **DONE** (2026-09-27) |
 | 3 | Authentication | **DONE** (2026-09-27) |
 | 4 | Character operations | **DONE** (2026-09-27) |
-| 5 | Admin | TODO |
+| 5 | Admin | **DONE** (2026-09-27) |
 | 6 | API compatibility review | TODO |
 | 7 | Parity & cutover | TODO |
 
-Phoenix app in `phoenix/`: skeleton (Phase 1), read-only features (Phase 2), authentication (Phase 3), character operations (Phase 4). The Next.js application code has not been modified. The DB `openmu` has not been written by Phoenix (no migrations run against it; verified `public.openmu_web_schema_migrations` does not exist there).
+Phoenix app in `phoenix/`: skeleton (Phase 1), read-only features (Phase 2), authentication (Phase 3), character operations (Phase 4), admin news (Phase 5). The Next.js application code has not been modified. The DB `openmu` has not been written by Phoenix (no migrations run against it; verified `public.openmu_web_schema_migrations` does not exist there).
 
 ## Decisions
 
@@ -64,7 +64,7 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 - Containers `database`, `openmu-startup`, `nginx-80` are **running** (they were stopped before Phase 0).
 - Disposable DB `openmu_phase0` exists in the same cluster and contains test modifications (password change, stats, resets, news, account `p0user`). Safe to drop: `DROP DATABASE openmu_phase0;` (not needed for anything).
 - `docs/db/openmu_schema.sql` added (schema only, no data, no secrets).
-- Disposable DBs: `open_mu_web_test` (ExUnit, recreated by `phoenix/scripts/setup_test_db.sh`) and `openmu_parity` (Phase 2 parity fixtures; recreate with `TEST_DB=openmu_parity phoenix/scripts/setup_test_db.sh` + fixtures when needed). Phase 4: `openmu_p4_next`, `openmu_p4_phx` (per-app copies for `char_parity.py`; recreate before each run).
+- Disposable DBs: `open_mu_web_test` (ExUnit, recreated by `phoenix/scripts/setup_test_db.sh`) and `openmu_parity` (Phase 2 parity fixtures; recreate with `TEST_DB=openmu_parity phoenix/scripts/setup_test_db.sh` + fixtures when needed). Phase 4: `openmu_p4_next`, `openmu_p4_phx` (per-app copies for `char_parity.py`; recreate before each run). Phase 5: `openmu_p5_next`, `openmu_p5_phx` (for `admin_parity.py`).
 - `next dev` inserted the `nextjs-agent-rules` block into `CLAUDE.md` (kept; it is re-added on every `next dev`).
 
 ## Phase 1 results (2026-09-27)
@@ -203,7 +203,34 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 - In-game effects of these operations (no game client): reset with unchanged Experience, State 0 after PK clear, reset spawn coordinates.
 - A character going online *during* an operation (the online check happens before the transaction, like Next.js).
 
-## Blockers before Phase 5
+## Phase 5 results (2026-09-27)
+
+### Delivered
+
+- `OpenMuWeb.News.create_article/3`, `delete_article/2` (GM character of the logged-in account required; author = its first GM character by slot; `creationDate` = UTC now, millisecond precision like Prisma).
+- `/admin/news` LiveView (title `maxlength` 200, body `maxlength` 3000, toasts), Game Master only (plug + `on_mount :require_gm`).
+- News cards: "Delete" button for Game Masters + confirmation dialog ("Are you sure you want to delete this news?" Yes/No, `assets/js/app.js`); "Yes" → `DELETE /admin/news/:id` (`AdminNewsController`, `require_gm`) → back to the page with "News deleted successfully".
+- `POST /api/admin/news`, `DELETE /api/admin/news/:id` (`Api.AdminNewsController`).
+- `phoenix/scripts/parity/admin_parity.py`.
+
+### Test / parity results
+
+- `mix precommit`: **136 tests, 0 failures** (4 runs).
+- `admin_parity.py` (per-app copies `openmu_p5_next` / `openmu_p5_phx`): **0 failures** — anonymous, GM create (incl. empty strings, text/plain body), missing / non-string fields, invalid JSON, delete existing / already deleted / malformed id, second GM account; news title/body identical.
+- Pages: `/admin/news` identical for a GM; `/`, `/info`, `/download`, `/terms-and-conditions`, `/register` identical; API 13/13.
+
+### Deliberate differences (Phase 5)
+
+- R3: a non-GM account can no longer create or delete news (Next.js: 200 for any logged-in user).
+- R6: `/admin/news` is refused server-side for anonymous users and non-GMs (Next.js served the page).
+- Author: the logged-in account's first GM character by slot (Next.js: first GM character in DB order among all accounts).
+- The "Delete" button is part of the server-rendered HTML for Game Masters (Next.js rendered it after hydration).
+
+### Not verified
+
+- The dialog / DELETE flow in a real browser (covered by controller tests and HTML checks; no headless browser).
+
+## Blockers before Phase 6
 
 - None.
 
@@ -215,3 +242,4 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 - 2026-09-27 — Phase 2 done: read-only features (schemas, contexts, pages, sidebar, `/ranking` LiveView, read-only `/api/*`), 61 tests, API/page parity checked side by side with Next.js.
 - 2026-09-27 — Phase 3 done: authentication (login/logout, session, guards, register, change password, `/api/account/*`, `/api/auth/session`), 95 tests, auth parity 0 failures.
 - 2026-09-27 — Phase 4 done: character panel + operations (API + LiveView) with R2–R5 fixes, 122 tests, char parity 0 failures, live race test.
+- 2026-09-27 — Phase 5 done: admin news (page, delete dialog, API) with R3/R6 fixes, 136 tests, admin parity 0 failures.

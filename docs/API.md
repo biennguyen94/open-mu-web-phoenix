@@ -121,7 +121,8 @@ Verification column: runtime test on 2026-09-27 (Next.js dev on port 4100, dispo
 | `POST /api/characters/pkclear` | `Api.CharacterController.pk_clear` (4) | identical; **R3/R5** fixed |
 | `POST /api/characters/reset` | `Api.CharacterController.reset` (4) | identical; **R3/R4/R5** fixed (`clasId` ignored) |
 | `POST /api/characters/resetStats` | `Api.CharacterController.reset_stats` (4) | identical; **R3/R5** fixed |
-| admin endpoints | Phase 5 | — |
+| `POST /api/admin/news` | `Api.AdminNewsController.create` (5) | identical messages/status (500 for non-GM, 400 invalid/malformed, JSON read before the session check, text/plain bodies accepted); **R3** fixed; author by slot |
+| `DELETE /api/admin/news/[id]` | `Api.AdminNewsController.delete` (5) | identical; **R3** fixed |
 
 VERIFIED from OpenMU source (`src/Web/AdminPanel/API/ServerController.cs`): `playersList` is the list of player (character) names and `state` is always `"Online"` when the admin panel answers; the JSON is returned via `Ok(string)`, hence `text/plain`.
 

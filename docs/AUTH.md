@@ -78,7 +78,7 @@ Client form: `minLength=4` on inputs (HTML only).
 | Logout | `DELETE /logout` (user panel "Sign Out") → session dropped (+ LiveView sockets disconnected) → back to the referring page |
 | Session | Cookie `_open_mu_web_key`, signed **and encrypted**, SameSite=Lax, `max_age` 30 days; contains only `account_id` |
 | Current account | `UserAuth.fetch_current_account` (browser + api pipelines) / `on_mount :mount_current_account`: `%CurrentAccount{id, login_name, email, gm?}` loaded from DB each request; stale ids are dropped |
-| Guards | `require_authenticated` / `require_gm` plugs and `on_mount` hooks → redirect `/` with flash "You can't do this!" (`/account`, `/characters` use it; `/admin/news` gets `require_gm` in Phase 5) |
+| Guards | `require_authenticated` / `require_gm` plugs and `on_mount` hooks → redirect `/` with flash "You can't do this!" (`/account`, `/characters` use `require_authenticated`; `/admin/news` and `DELETE /admin/news/:id` use `require_gm`) |
 | Register | `/register` LiveView and `POST /api/account/register` share `Accounts.register/1`; validation reproduces the zod schema **and its error JSON** (`Accounts.Registration`) |
 | Change password | `/account` LiveView and `PUT /api/account/changepassword` share `Accounts.change_password/4`; always the logged-in account (R1) |
 | Session JSON | `GET /api/auth/session` — same shape as NextAuth (`{}` when anonymous). The NextAuth protocol endpoints (`/api/auth/csrf`, `/callback/credentials`, `/signout`, `/providers`) are not ported: replaced by `/login` and `/logout` |

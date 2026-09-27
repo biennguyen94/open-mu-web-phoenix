@@ -34,3 +34,19 @@ All pages share the root layout (see `ARCHITECTURE.md`): nav, banners + login/us
 `app/page.tsx` reads `searchParams.page` and `app/news/[id]/page.tsx` reads `params.id` **synchronously**, but in Next 15+ these are Promises. **VERIFIED broken (2026-09-27)**: Next logs `searchParams is a Promise...` / `params is a Promise...`; `/?page=1` renders the same news as `/`; `/news/<existing id>` renders "No News was found!". Phoenix implements the intended behavior (`?page=N`, detail by UUID) — accepted deliberate difference (see `PORTING_STATUS.md`).
 
 Other VERIFIED page facts: anonymous `/characters` shows "There are no created characters at the moment"; anonymous `/admin/news` returns HTTP 200 (client-side redirect only); `/recoverpassword` → 404.
+
+## Phoenix routes (Phases 2–5)
+
+| URL | Phoenix | Access |
+|---|---|---|
+| `/`, `/news/:id`, `/info`, `/download`, `/terms-and-conditions` | controllers (`NewsController`, `PageController`) | public |
+| `/ranking` | `RankingLive` | public |
+| `/register` | `RegisterLive` | public |
+| `POST /login`, `DELETE /logout` | `SessionController` | public / logged in |
+| `/account` | `AccountLive` | login required |
+| `/characters` | `CharactersLive` | login required |
+| `/admin/news` | `AdminNewsLive` | Game Master (server-side) |
+| `DELETE /admin/news/:id` | `AdminNewsController` (news card "Delete" → confirmation dialog → "Yes") | Game Master |
+| `/recoverpassword` | — (404, as in Next.js) | — |
+
+News cards show the "Delete" button to Game Masters in the server-rendered HTML (Next.js added it after hydration from `localStorage.role`).

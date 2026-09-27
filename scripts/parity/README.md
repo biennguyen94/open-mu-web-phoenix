@@ -28,6 +28,12 @@ TEST_DB=openmu_p4_next ../setup_test_db.sh; TEST_DB=openmu_p4_phx ../setup_test_
 ./fake_game_server.py test1Dl test400Mg &          # two characters "online"
 # Next.js :4100 on openmu_p4_next, Phoenix :4101 on openmu_p4_phx
 ./char_parity.py                                   # responses + final DB state diff
+```
+
+Admin news, same idea (per-app copies `openmu_p5_next` / `openmu_p5_phx`, `./fake_game_server.py`):
+
+```bash
+./admin_parity.py                                  # create / delete responses + news rows
 ./page_parity.py http://localhost:4100 http://localhost:4101 / "/?page=1" /info /download /terms-and-conditions
 ```
 

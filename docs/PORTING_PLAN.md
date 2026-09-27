@@ -68,9 +68,12 @@ open-mu-web/                 (this repo)
 - [x] `/api/characters/*` controllers with the Next.js messages/status codes.
 - [x] Integration tests on the disposable DB + side-by-side parity (`char_parity.py`) + live race test.
 
-## Phase 5 — Admin
+## Phase 5 — Admin — DONE (2026-09-27)
 
-- `/admin/news` (GM only, server-side), delete with confirmation; `/api/admin/news` endpoints.
+- [x] `/admin/news` (GM only, server-side), add news.
+- [x] Delete news from the news cards with the confirmation dialog (`DELETE /admin/news/:id`).
+- [x] `/api/admin/news` (POST) and `/api/admin/news/:id` (DELETE) with the Next.js messages/status codes; R3 fixed.
+- [x] Tests + side-by-side parity (`admin_parity.py`).
 
 ## Phase 6 — API compatibility review
 
