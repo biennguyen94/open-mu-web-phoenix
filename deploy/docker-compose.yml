@@ -1,0 +1,31 @@
+# OpenMU Web (Phoenix) next to the OpenMU all-in-one stack
+# (/home/bien_nguyen/OpenMU/deploy/all-in-one: containers database, openmu-startup, nginx-80).
+#
+#   cd phoenix/deploy && cp .env.example .env   # then fill in the values
+#   docker compose up -d --build
+#
+# The site joins the OpenMU compose network so it reaches the database as
+# `database:5432` and the admin panel (/api/status) as `openmu-startup:8080`.
+# Nothing in the OpenMU stack is changed. No migration is run at startup.
+name: openmu-web
+
+services:
+  openmu-web:
+    build:
+      context: ..
+    image: openmu-web-phoenix:latest
+    container_name: openmu-web
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PHX_SERVER: "true"
+      PORT: "4000"
+    ports:
+      - "${WEB_PORT:-4000}:4000"
+    networks:
+      - openmu
+
+networks:
+  openmu:
+    name: ${OPENMU_NETWORK:-all-in-one_default}
+    external: true

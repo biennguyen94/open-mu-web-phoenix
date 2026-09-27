@@ -82,8 +82,11 @@ open-mu-web/                 (this repo)
 - [x] Final list of intentional differences in `API.md`.
 - [x] `phoenix/scripts/parity/run_all.sh` runs every parity check in one command (+ `http_parity.py`).
 
-## Phase 7 — Parity & cutover
+## Phase 7 — Parity & cutover — DONE (2026-09-27)
 
-- Run Next.js and Phoenix side by side against a **copy** of the DB; compare pages and API outputs.
-- Deploy; rotate `NEXTAUTH_SECRET`/DB credentials (R7); announce re-login.
-- Follow-ups outside porting scope: B3 (per-class base stats), R9 (default test accounts).
+- [x] Next.js and Phoenix side by side on DB copies (`run_all.sh`, Phase 6; all PASS).
+- [x] Release image + compose (`phoenix/Dockerfile`, `phoenix/deploy/`), staging run on a DB copy.
+- [x] Deployed on Docker (WSL) on the OpenMU network, port 4000; production smoke tests (read-only).
+- [ ] Rotate DB credentials / untrack `.env` (R7) — needs a change in the OpenMU stack; not done.
+- [ ] Announce re-login to users (sessions do not carry over).
+- Follow-ups outside porting scope: B3 (per-class base stats), B4, B5, B14, B15, R9 (default test accounts), R11 (password length).

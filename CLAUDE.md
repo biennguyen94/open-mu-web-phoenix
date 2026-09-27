@@ -9,7 +9,7 @@ This repository is being **ported** to Elixir/Phoenix. Read `docs/` before doing
 |---|---|---|
 | **Current** | Next.js 16 (App Router) + React 19 + TypeScript + Prisma 7 (`@prisma/adapter-pg`) + NextAuth v4 + Tailwind 3 | Source of truth for behavior. Do not modify during porting. |
 | **Existing** | OpenMU PostgreSQL database (schemas `config`, `data`, `friend`, `guild`, `public`), owned by the OpenMU game server (EF Core) | Shared with the running game server. |
-| **Target** | Elixir + Phoenix + LiveView + Ecto (postgrex), Tailwind v3 | Lives in `phoenix/` (Mix app `:open_mu_web`). Phases 1–6 (skeleton, read-only features, authentication, character operations, admin news, API review) done; see `docs/PORTING_STATUS.md` and `phoenix/AGENTS.md`. |
+| **Target** | Elixir + Phoenix + LiveView + Ecto (postgrex), Tailwind v3 | Lives in `phoenix/` (Mix app `:open_mu_web`). Phases 1–7 done — **deployed**: container `openmu-web` on port 4000 (`phoenix/deploy`, `docs/DEPLOY.md`); see `docs/PORTING_STATUS.md` and `phoenix/AGENTS.md`. |
 
 Decisions (details in `docs/PORTING_STATUS.md`): fix security issues (R1–R3, no vulnerabilities ported) · keep current game rules (reset stats base 20, reset keeps Experience/LevelUpPoints) · keep `/api/*` JSON endpoints · Tailwind v3 · Phoenix in `phoenix/` next to the untouched Next.js app.
 
@@ -34,6 +34,7 @@ Decisions (details in `docs/PORTING_STATUS.md`): fix security issues (R1–R3, n
 - `docs/RISKS.md` — security issues, bugs, porting risks
 - `docs/PORTING_PLAN.md` — phases
 - `docs/PORTING_STATUS.md` — current status, decisions, open questions (update this as work progresses)
+- `docs/DEPLOY.md` — Docker deployment on WSL, operations, rollback
 
 ## Commands
 

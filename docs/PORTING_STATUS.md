@@ -11,9 +11,9 @@ Last updated: 2026-09-27
 | 4 | Character operations | **DONE** (2026-09-27) |
 | 5 | Admin | **DONE** (2026-09-27) |
 | 6 | API compatibility review | **DONE** (2026-09-27) |
-| 7 | Parity & cutover | TODO |
+| 7 | Parity & cutover | **DONE** (2026-09-27) — deployed on Docker (WSL), see `docs/DEPLOY.md`; open items listed in Phase 7 results |
 
-Phoenix app in `phoenix/`: skeleton (Phase 1), read-only features (Phase 2), authentication (Phase 3), character operations (Phase 4), admin news (Phase 5), API compatibility review (Phase 6). The Next.js application code has not been modified. The DB `openmu` has not been written by Phoenix (no migrations run against it; verified `public.openmu_web_schema_migrations` does not exist there).
+Phoenix app in `phoenix/`: skeleton (Phase 1), read-only features (Phase 2), authentication (Phase 3), character operations (Phase 4), admin news (Phase 5), API compatibility review (Phase 6), deployed on Docker (Phase 7) — **the live site is the Phoenix container `openmu-web` on port 4000**. The Next.js application code has not been modified (kept for rollback). The DB `openmu` has not been written by Phoenix outside normal site usage (no migrations run against it; verified `public.openmu_web_schema_migrations` does not exist there).
 
 ## Decisions
 
@@ -250,9 +250,34 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 
 - R11 (minimum length of a new password) — still pending.
 
-## Blockers before Phase 7
+## Phase 7 results (2026-09-27) — deployed on Docker (WSL)
 
-- None.
+### Delivered
+
+- Release image: `phoenix/Dockerfile` (`mix phx.gen.release --docker`, OTP 28.5.0.7 / Elixir 1.20.4, Debian trixie), `.dockerignore` (never sends `deploy/` or `.env`), `lib/open_mu_web/release.ex` (`migrate` only — website migration; no rollback task).
+- Production config: `force_ssl` opt-in (`PHX_FORCE_SSL`), public URL from `PHX_HOST` / `PHX_URL_SCHEME` / `PHX_URL_PORT` (default plain HTTP :4000), LiveView `check_origin: :conn`.
+- `phoenix/deploy/docker-compose.yml` (service/container `openmu-web`, host port 4000, `restart: unless-stopped`, external network `all-in-one_default`), `.env.example`, gitignored `.env` (new `SECRET_KEY_BASE`, DB user of the OpenMU stack on `database:5432`, `GAMESERVER_URL=http://openmu-startup:8080`, website settings from the old `.env`).
+- `docs/DEPLOY.md`: topology, operations, smoke test, rollback to Next.js, HTTPS/VPS, security notes.
+
+### Cutover
+
+- **The site now runs from the Phoenix container on http://localhost:4000** (the port of the Next.js app, which was not running). OpenMU containers untouched.
+- No migration was run: `openmu` already has `OpenMuWeb_News`; verified no bookkeeping table was created and nothing was written during the smoke tests.
+- Rollback: `docker compose down` in `phoenix/deploy`, then `npm run build && npm start` at the repository root.
+
+### Verification
+
+- `mix precommit`: 141 tests, 0 failures.
+- Staging (same image, DB copy, port 4102) and production smoke tests: pages, digested assets, `/api/status` 201 through the Docker network (real admin panel), rankings, trailing-slash 308, guards, login (GM) + `/characters` / `/account` / `/admin/news`, LiveView websocket 101 for same origin (`localhost` / `127.0.0.1`), 403 for a foreign origin — see `DEPLOY.md`.
+- Parity: `run_all.sh` passed twice at the end of Phase 6 with the same application code. A re-run after the deployment was killed by the host (out of memory with the OpenMU stack + production container + both dev servers); not repeated to avoid stopping production.
+
+### Not done (need a decision / outside the repository)
+
+- R7: repository `.env` still tracked in git with the DB password; Postgres password not rotated (requires changing the OpenMU stack configuration). `NEXTAUTH_SECRET` is no longer used by the site.
+- R9: OpenMU default test accounts (password = login name, incl. GMs) still exist.
+- R11: minimum length for new passwords — still open.
+- Manual checks: real browser on Windows; game client login with an account created / password changed on the new site; in-game effects of character operations.
+- Follow-ups outside porting scope (kept by D2): B3, B4, B5, B14, B15.
 
 ## Log
 
@@ -264,3 +289,4 @@ Deliberate behavior differences already accepted: D1 security fixes (incl. R10: 
 - 2026-09-27 — Phase 4 done: character panel + operations (API + LiveView) with R2–R5 fixes, 122 tests, char parity 0 failures, live race test.
 - 2026-09-27 — Phase 5 done: admin news (page, delete dialog, API) with R3/R6 fixes, 136 tests, admin parity 0 failures.
 - 2026-09-27 — Phase 6 done: API surface audited and aligned (405/OPTIONS/308/content-type), `run_all.sh` parity runner, 141 tests.
+- 2026-09-27 — Phase 7 done: release image + compose on the OpenMU Docker network, deployed on WSL (port 4000), staging + production smoke tests; open items: R7 rotation, R9, R11, manual game-client/browser checks.

@@ -27,6 +27,10 @@ mix setup          # deps + assets (no database setup: the DB is owned by OpenMU
 mix phx.server     # http://localhost:4001 (Next.js keeps port 4000)
 ```
 
+## Deploy (Docker)
+
+See `../docs/DEPLOY.md`: `cd deploy && docker compose up -d --build` (release image, OpenMU Docker network, port 4000).
+
 ## Tests
 
 ```bash
